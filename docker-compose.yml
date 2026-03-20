@@ -1,0 +1,92 @@
+version: '3.9'
+
+services:
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: mqtt-ace
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  simulador:
+    build: ./simulador
+    container_name: simulador-ace
+    depends_on:
+      - mqtt
+
+  nodered:
+    image: nodered/node-red
+    container_name: nodered-ace
+    ports:
+      - "1880:1880"
+    depends_on:
+      - mqtt
+
+  influxdb:
+    image: influxdb:2
+    container_name: influxdb-ace
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin123
+      DOCKER_INFLUXDB_INIT_ORG: senai
+      DOCKER_INFLUXDB_INIT_BUCKET: linha_producao
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana-ace
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-ace
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: dbace
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: backend-dev
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    tty: true
+
+  ai:
+    image: python:3.10
+    container_name: ai-dev
+    working_dir: /app
+    volumes:
+      - ./ai:/app
+    ports:
+      - "8000:8000"
+    tty: true
+
+  frontend:
+    image: node:20
+    container_name: frontend-dev
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "19006:19006"
+    tty: true
+
+volumes:
+  postgres_data:

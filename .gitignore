@@ -1,0 +1,89 @@
+# =========================
+# Geral
+# =========================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# =========================
+# Docker
+# =========================
+.env
+.env.*
+docker-compose.override.yml
+
+# =========================
+# Node / React / Vite
+# =========================
+node_modules/
+dist/
+build/
+.vite/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# React Native / Vite local
+# =========================
+.expo/
+.expo-shared/
+
+# =========================
+# .NET / C#
+# =========================
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / VSCode
+.vscode/
+.idea/
+
+# =========================
+# Python / Flask
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+venv/
+.env/
+
+# =========================
+# Banco de dados
+# =========================
+*.db
+*.sql
+
+# =========================
+# Influx / Grafana / volumes
+# =========================
+**/data/
+**/storage/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# Build outputs gerais
+# =========================
+out/
+target/
+
+# =========================
+# OS
+# =========================
+*.bak
+*.old
