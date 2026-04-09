@@ -13,6 +13,8 @@ services:
   simulador:
     build: ./simulador
     container_name: simulador-ace
+    ports:
+      - "5000:5000"
     depends_on:
       - mqtt
 
@@ -85,8 +87,9 @@ services:
     volumes:
       - ./frontend:/app
     ports:
-      - "19006:19006"
-    tty: true
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev"
+      
 
 volumes:
   postgres_data:
