@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SENAI ACE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+<div class="app">
+
+  <!-- ── HEADER ──────────────────────────────────── -->
+  <div class="hdr">
+    <div class="brand">
+      <div class="brand-icon">
+          <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo">
+      </div>
+      <div>
+        <div class="brand-text">SENAI ACE · Linha de Produção & Logística</div>
+        <div class="brand-sub">Simulador MQTT · Industrial Internet of Things</div>
+      </div>
+    </div>
+    <div class="pills">
+      <div class="pill">
+        <div class="dot ok" id="dot-mqtt"></div>
+        <span id="lbl-mqtt">MQTT</span>
+      </div>
+      <div class="pill">
+        <div class="dot" id="dot-sim"></div>
+        <span id="lbl-sim">SIMULAÇÃO</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TABS ────────────────────────────────────── -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('producao')">Linha de Produção</button>
+    <button class="tab" onclick="switchTab('logistica')">Logística &amp; Entrega</button>
+    <button class="tab" onclick="switchTab('log')">Log de Eventos</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SEÇÃO — PRODUÇÃO
+  ═══════════════════════════════════════════════ -->
+  <div id="sec-producao" class="sec active">
+ 
+    <div class="panel">
+      <div class="plbl">Entrada de Veículos</div>
+ 
+      <div class="row">
+        <div class="col">
+          <label class="lbl">Chassi (manual)</label>
+          <input type="text" id="inp-chassi" placeholder="Ex: TOY2026001" />
+        </div>
+        <div class="col">
+          <label class="lbl">Tópico MQTT</label>
+          <input type="text" id="inp-topic-prod" value="senai/producao/linha" />
+        </div>
+      </div>
+ 
+      <div class="row">
+        <div class="col">
+          <label class="lbl">Intervalo automático (seg)</label>
+          <input type="number" id="inp-intervalo" value="8" min="3" max="60" />
+        </div>
+      </div>
+ 
+      <div class="btn-row">
+        <button class="btn btn-p btn-sm" onclick="enviarManual()">▶ Enviar Manual</button>
+        <button class="btn btn-a btn-sm" id="btn-auto" onclick="toggleAuto()">⟳ Iniciar Automático</button>
+      </div>
+    </div>
+ 
+    <div class="stats">
+      <div class="scard"><div class="slbl">Na Fila</div>      <div class="sval a" id="s-fila">0</div></div>
+      <div class="scard"><div class="slbl">Em Processo</div>  <div class="sval"   id="s-proc">0</div></div>
+      <div class="scard"><div class="slbl">Finalizados</div>  <div class="sval g" id="s-fin">0</div></div>
+      <div class="scard"><div class="slbl">Msgs Pub.</div>    <div class="sval m" id="s-msgs">0</div></div>
+    </div>
+ 
+    <div class="panel">
+      <div class="plbl">Estado da Linha — Tempo Real</div>
+      <div class="stages" id="stages"></div>
+      <div>
+        <span style="font-size:10px;color:var(--text-m);text-transform:uppercase;letter-spacing:.8px;font-weight:600;">
+          Fila de Entrada
+        </span>
+        <div class="chips" id="queue-chips">
+          <span style="font-size:10px;color:var(--text-h);font-family:var(--mono);">Nenhum veículo aguardando</span>
+        </div>
+      </div>
+    </div>
+ 
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SEÇÃO — LOGÍSTICA
+  ═══════════════════════════════════════════════ -->
+  <div id="sec-logistica" class="sec">
+
+    <div class="panel">
+      <div class="plbl">Envio para Concessionária</div>
+
+      <div class="row">
+        <div class="col">
+          <label class="lbl">Tipo</label>
+          <select id="log-tipo">
+            <option value="veiculo">Veículo Completo</option>
+            <option value="peca">Peça / Componente</option>
+          </select>
+        </div>
+        <div class="col">
+          <label class="lbl">Chassi / Pedido</label>
+          <input type="text" id="log-id" placeholder="Ex: TOY2026001 ou PD0042" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label class="lbl">Concessionária destino</label>
+          <select id="log-destino">
+            <option value="">Selecione uma concessionária</option>
+            <option value="Ramires Toyota — Sorocaba/SP">Ramires Toyota — Sorocaba/SP</option>
+            <option value="Toyota Nippokar — Itu/SP">Toyota Nippokar — Itu/SP</option>
+            <option value="Toyota Germânica — Campinas/SP">Toyota Germânica — Campinas/SP</option>
+            <option value="Niponsul Toyota — Porto Alegre/RS">Niponsul Toyota — Porto Alegre/RS</option>
+            <option value="Toyolex — Recife/PE">Toyolex — Recife/PE</option>
+            <option value="Tsusho — São Paulo/SP">Tsusho — São Paulo/SP</option>
+            <option value="Daihatsu Toyota — Belo Horizonte/MG">Daihatsu Toyota — Belo Horizonte/MG</option>
+            <option value="Noma Motors Toyota — Maringá/PR">Noma Motors Toyota — Maringá/PR</option>
+            <option value="Car House Toyota — Porto Alegre/RS">Car House Toyota — Porto Alegre/RS</option>
+            <option value="Toyopar — Londrina/PR">Toyopar — Londrina/PR</option>
+          </select>
+        </div>
+        <div class="col">
+          <label class="lbl">Tópico MQTT</label>
+          <input type="text" id="log-topic" value="senai/logistica/entrega" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label class="lbl">Intervalo automático (seg)</label>
+          <input type="number" id="log-intervalo" value="6" min="3" max="60" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-p btn-sm" onclick="enviarDespacho()">▶ Enviar Despacho</button>
+        <button class="btn btn-a btn-sm" id="btn-auto-log" onclick="toggleAutoLog()">⟳ Automático</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="scard"><div class="slbl">Veículos Enviados</div> <div class="sval g" id="ls-veic">0</div></div>
+      <div class="scard"><div class="slbl">Peças Enviadas</div>    <div class="sval"   id="ls-peca">0</div></div>
+      <div class="scard"><div class="slbl">Total Despachado</div>  <div class="sval m" id="ls-total">0</div></div>
+      <div class="scard"><div class="slbl">Em Trânsito</div>       <div class="sval a" id="ls-transit">0</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="plbl">Log de Despachos</div>
+      <div class="log" id="log-logistica">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-h);text-align:center;margin-top:60px;">
+          Nenhum despacho realizado
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SEÇÃO — LOG GERAL
+  ═══════════════════════════════════════════════ -->
+  <div id="sec-log" class="sec">
+    <div class="panel">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="plbl" style="margin-bottom:0;">Log Completo de Eventos MQTT</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="log-filter" style="width:auto;padding:4px 8px;font-size:11px;">
+            <option value="todos">Todos os tópicos</option>
+            <option value="producao">Produção</option>
+            <option value="logistica">Logística</option>
+          </select>
+          <button class="btn btn-sm btn-o" onclick="limparLog()">Limpar</button>
+        </div>
+      </div>
+
+      <div class="log log-lg" id="log-full"></div>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<div id="toast"></div>
+
+<!-- variáveis injetadas pelo servidor -->
+<script>
+  const ETAPAS_LABELS = {{ etapas_labels | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
