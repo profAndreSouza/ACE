@@ -20,23 +20,31 @@ O sistema é composto por aplicações independentes orquestradas via Docker Com
 ```mermaid
 flowchart LR
 
-SIM[Simulador IoT]
-MQTT[Mosquitto MQTT]
+     subgraph Edge Layer - Device
+          SIM[Simulador IoT]
+     end
 
-NR[Node-RED]
-INF[InfluxDB - Dados Brutos]
+     subgraph Stack MING
+          MQTT[Mosquitto MQTT]
 
-WEBAPI[Backend .NET]
-PG[(PostgreSQL)]
+          NR[Node-RED]
+          INF[InfluxDB - Dados Brutos]
+          GRAF[Grafana]
 
-AI[Serviço de IA - Python]
+     end
 
-WEB[Frontend Web/Mobile - React]
+     subgraph Stack WEB
+          WEBAPI[Backend .NET]
+          PG[(PostgreSQL)]
 
-GRAF[Grafana]
+          AI[Serviço de IA - Python]
+
+          WEB[Frontend Web/Mobile - React]
+     end
 
 SIM --> MQTT --> NR --> INF --> GRAF
-INF --> WEBAPI --> PG --> WEB
+INF --> WEBAPI --> PG
+WEBAPI --> WEB
 
 WEBAPI --> AI
 ```
@@ -127,41 +135,6 @@ Interface única do sistema.
 
 ---
 
-## Fluxo de Dados
-
-```mermaid
-flowchart LR
-
-A[Simulador IoT] --> B[MQTT Broker]
-
-B --> C[Node-RED]
-C --> D[InfluxDB]
-
-D --> E[Backend .NET]
-E --> F[PostgreSQL]
-
-E --> G[Serviço de IA]
-
-E --> H[Frontend Web/Mobile]
-
-D --> I[Grafana]
-```
-
----
-
-## Repositório
-
-```
-.
-├── docker-compose.yml
-├── mosquitto/
-├── simulador/
-├── backend/
-├── frontend/
-├── ai/
-```
-
----
 
 ## Serviços e Portas
 
