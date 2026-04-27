@@ -1,316 +1,234 @@
-# Sistema de Acompanhamento de Produção — ACE
-
-Sistema completo para acompanhamento em tempo real da produção de veículos, integrando IoT, backend REST, frontend web/mobile e recomendação por IA.
-
----
+# Sistema ACE — Plataforma Industrial (IoT + Web + IA)
 
 ## Visão Geral
 
-O projeto é um **monorepo** com cinco aplicações independentes que se comunicam via rede Docker:
+O sistema **ACE (Automação e Controle de Eventos)** é uma plataforma distribuída que simula um ambiente industrial completo, integrando:
 
-| Aplicação | Tecnologia | Porta |
-|-----------|-----------|-------|
-| `simulador` | Python | — |
-| `backend` | .NET 8 | 5000 |
-| `frontend` | React / Expo | 19006 |
-| `ai` | Python | 8000 |
-| InfluxDB | — | 8086 |
-| PostgreSQL | — | 5432 |
-| Node-RED | — | 1880 |
-| Grafana | — | 3000 |
-| MQTT (Mosquitto) | — | 1883 |
+- IoT industrial (simulação de produção e logística)
+- Processamento de eventos em tempo real
+- Persistência de dados em múltiplas camadas
+- APIs corporativas (ERP-like)
+- Interface web e mobile
+- Serviço de recomendação com IA
 
 ---
 
-## Estrutura do Repositório
+## Arquitetura Geral
+
+O sistema é composto por aplicações independentes orquestradas via Docker Compose.
+
+```mermaid
+flowchart LR
+
+SIM[Simulador IoT]
+MQTT[Mosquitto MQTT]
+
+NR[Node-RED]
+INF[InfluxDB - Dados Brutos]
+
+WEBAPI[Backend .NET]
+PG[(PostgreSQL)]
+
+AI[Serviço de IA - Python]
+
+WEB[Frontend Web/Mobile - React]
+
+GRAF[Grafana]
+
+SIM --> MQTT --> NR --> INF --> GRAF
+INF --> WEBAPI --> PG --> WEB
+
+WEBAPI --> AI
+```
+
+---
+
+## Camadas do Sistema
+
+### 1. Stack IoT (MING)
+
+Responsável pela captura e persistência de dados brutos.
+
+| Componente       | Função                            |
+| ---------------- | --------------------------------- |
+| MQTT (Mosquitto) | Broker de mensagens               |
+| Node-RED         | Processamento de eventos          |
+| InfluxDB         | Armazenamento de séries temporais |
+| Grafana          | Visualização operacional          |
+
+> Essa camada lida com dados em tempo real de produção e logística.
+
+---
+
+### 2. Stack Web (Negócio)
+
+Responsável pela consolidação e modelagem de dados.
+
+| Componente     | Função                       |
+| -------------- | ---------------------------- |
+| Backend (.NET) | API REST e regras de negócio |
+| PostgreSQL     | Dados estruturados (ERP)     |
+
+Funções principais:
+
+* Consolidação de dados do InfluxDB
+* Gestão de clientes, pedidos e veículos
+* Exposição de APIs para frontend
+* Integração com IA
+
+---
+
+### 3. Inteligência Artificial
+
+Serviço independente responsável por recomendações.
+
+* Sugestão de peças e acessórios
+* Recomendações baseadas em perfil do cliente
+* Consumo via API pelo backend
+
+---
+
+### 4. Frontend
+
+Interface única do sistema.
+
+* Consome apenas o backend
+* Não acessa bancos diretamente
+* Exibe:
+
+  * Produção
+  * Serviços
+  * Vendas de peças
+  * Perfil do cliente
+
+---
+
+## Domínios Funcionais
+
+### Produção
+
+* Linha de montagem
+* Status de veículos
+* Etapas industriais
+* Rastreamento de fabricação
+
+### Serviços
+
+* Ordens de manutenção
+* Serviços técnicos
+* Peças associadas a reparos
+
+### Vendas de Peças (B2C)
+
+* Catálogo de peças automotivas
+* Carrinho de compras
+* Pedido de consumidor final
+* Histórico de compras
+
+---
+
+## Fluxo de Dados
+
+```mermaid
+flowchart LR
+
+A[Simulador IoT] --> B[MQTT Broker]
+
+B --> C[Node-RED]
+C --> D[InfluxDB]
+
+D --> E[Backend .NET]
+E --> F[PostgreSQL]
+
+E --> G[Serviço de IA]
+
+E --> H[Frontend Web/Mobile]
+
+D --> I[Grafana]
+```
+
+---
+
+## Repositório
 
 ```
 .
 ├── docker-compose.yml
 ├── mosquitto/
-│   └── mosquitto.conf
-├── simulador/          # Dispositivo IoT simulado (Python)
-├── backend/            # API REST (.NET 8)
-├── frontend/           # Web + Mobile (React / Expo)
-└── ai/                 # Serviço de recomendação (Python)
+├── simulador/
+├── backend/
+├── frontend/
+├── ai/
 ```
 
 ---
 
-## Arquitetura
+## Serviços e Portas
 
-```
-[ Simulador Python ]
-        |  MQTT (1883)
-        v
-  [ Mosquitto ]
-        |
-        v
-   [ Node-RED ]  ──────────────> [ Grafana ]
-        |                              ^
-        v                              |
-   [ InfluxDB ]  <─────────────────────┘
-        ^
-        | leitura periódica
-        |
-   [ Backend .NET ] ──> [ PostgreSQL ]
-        |
-        |──> [ AI Python ] (recomendações)
-        |
-        v
-   [ Frontend React/Expo ]
-```
-
-### Fluxo de dados
-
-1. O **simulador** publica eventos de produção via MQTT (tópico configurado no broker Mosquitto).
-2. O **Node-RED** consome as mensagens MQTT e as grava no **InfluxDB** como séries temporais.
-3. O **backend** lê periodicamente o InfluxDB, consolida os dados de produção e os persiste no **PostgreSQL**.
-4. O **frontend** consome exclusivamente o backend via API REST.
-5. O **serviço de IA** é consultado pelo backend para gerar recomendações personalizadas por cliente.
-6. O **Grafana** se conecta ao InfluxDB para visualização dos dados brutos de produção.
+| Serviço          | Porta      |
+| ---------------- | ---------- |
+| MQTT (Mosquitto) | 1883       |
+| Node-RED         | 1880       |
+| InfluxDB         | 8086       |
+| Grafana          | 3000       |
+| PostgreSQL       | 5432       |
+| Backend (.NET)   | 5000       |
+| IA (Python)      | 8000       |
+| Frontend (React) | 80         |
 
 ---
 
-## Stack IoT (MING)
+## Princípios Arquiteturais
 
-| Componente | Função |
-|-----------|--------|
-| **M**osquitto (MQTT) | Broker de mensageria entre o simulador e o Node-RED |
-| **I**nfluxDB 2 | Armazenamento de séries temporais dos eventos de produção |
-| **N**ode-RED | Processamento e roteamento das mensagens MQTT → InfluxDB |
-| **G**rafana | Dashboard de visualização dos dados brutos |
-
-### Formato dos eventos no InfluxDB
-
-```
-measurement: producao
-tags:   carro=<id>   etapa=<nome>
-fields: evento=<entrada|saida>
-```
-
-Exemplo de mensagem MQTT publicada pelo simulador:
-
-```json
-{
-  "carro": "1",
-  "etapa": "montagem",
-  "evento": "entrada"
-}
-```
+* Separação total entre IoT e sistema de negócio
+* Backend como única camada de integração
+* Frontend desacoplado de qualquer banco de dados
+* IA como serviço independente
+* Comunicação baseada em APIs e eventos
+* Arquitetura orientada a serviços (SOA)
 
 ---
 
-## Aplicações
+## Tipos de Dados
 
-### Simulador (`/simulador`)
+### IoT (InfluxDB)
 
-Aplicação Python que simula um dispositivo IoT publicando eventos de produção via MQTT.
+* Eventos de produção
+* Eventos logísticos
+* Dados em tempo real
 
-- Construída com `Dockerfile` próprio.
-- Aguarda o broker MQTT estar disponível antes de publicar.
-- Publica mensagens no formato JSON no tópico configurado.
+### Negócio (PostgreSQL)
 
-### Backend (`/backend`)
-
-API REST em .NET 8 responsável por:
-
-- Autenticação de usuários (JWT)
-- Regras de negócio e consolidação dos dados
-- Leitura periódica do InfluxDB e persistência no PostgreSQL
-- Integração com o serviço de recomendação (IA)
-- Exposição dos endpoints para o frontend
-
-**Organização interna:**
-
-```
-backend/
-├── Controllers/    # Endpoints REST
-├── Services/       # Regras de negócio
-├── Repositories/   # Acesso a dados
-├── DTOs/           # Objetos de transferência
-└── Models/         # Entidades do domínio
-```
-
-**Variáveis de ambiente relevantes:**
-
-```
-ConnectionStrings__Postgres=Host=postgres;Database=dbace;Username=admin;Password=admin123
-InfluxDB__Url=http://influxdb:8086
-InfluxDB__Token=<token gerado no setup>
-InfluxDB__Org=senai
-InfluxDB__Bucket=linha_producao
-JwtSettings__Secret=<secret>
-```
-
-### Frontend (`/frontend`)
-
-Aplicação React (web) e React Native com Expo (mobile).
-
-- Porta `19006` exposta para acesso web via Expo.
-- Consome exclusivamente a API do backend.
-- Não acessa banco de dados diretamente.
-
-### Serviço de IA (`/ai`)
-
-Serviço Python que expõe uma API REST na porta `8000` com endpoints de recomendação.
-
-- Recebe dados do perfil do cliente enviados pelo backend.
-- Retorna sugestões personalizadas de produtos e serviços.
+* Clientes
+* Pedidos
+* Serviços
+* Peças
+* Veículos
 
 ---
 
-## Endpoints da API (Backend)
+## Objetivo do Sistema
 
-### Autenticação
+Este projeto simula um ambiente industrial completo com foco em:
 
-```
-POST /api/auth/register
-POST /api/auth/login
-```
-
-### Cliente
-
-```
-GET /api/client/me
-```
-
-### Pedidos
-
-```
-POST /api/orders
-GET  /api/orders/{id}
-GET  /api/orders/my
-```
-
-### Veículo
-
-```
-GET /api/vehicles/{id}
-```
-
-### Produção
-
-```
-GET /api/production/{orderId}
-```
-
-### Recomendação
-
-```
-GET /api/recommendations/{clientId}
-```
+* Indústria 4.0
+* Integração IoT + ERP
+* Arquitetura distribuída moderna
+* Sistemas orientados a eventos
+* Inteligência aplicada a recomendação de produtos
 
 ---
 
-## Como Executar
-
-### Pré-requisitos
-
-- Docker e Docker Compose instalados.
-
-### Subir todos os serviços
+## Execução
 
 ```bash
 docker compose up -d
 ```
 
-### Acessar os serviços
-
-| Serviço | URL |
-|---------|-----|
-| Backend API | http://localhost:5000 |
-| Frontend (Expo Web) | http://localhost:19006 |
-| Serviço de IA | http://localhost:8000 |
-| Node-RED | http://localhost:1880 |
-| InfluxDB | http://localhost:8086 |
-| Grafana | http://localhost:3000 |
-| MQTT | mqtt://localhost:1883 |
-
-### Credenciais padrão
-
-| Serviço | Usuário | Senha |
-|---------|---------|-------|
-| InfluxDB | `admin` | `admin123` |
-| PostgreSQL | `admin` | `admin123` |
-| Grafana | `admin` | `admin` (padrão da imagem) |
-
-> **InfluxDB:** na primeira inicialização, acesse `http://localhost:8086` para obter o token de API. Configure esse token nas variáveis de ambiente do backend.
-
-### Desenvolvimento individual
-
-Os containers de `backend`, `frontend` e `ai` montam os diretórios locais como volumes — as alterações em código refletem sem precisar reconstruir a imagem.
-
-Para iniciar o servidor de desenvolvimento dentro de cada container:
-
-```bash
-# Backend (.NET)
-docker exec -it backend-dev bash
-dotnet run
-
-# Frontend (Expo)
-docker exec -it frontend-dev bash
-npm install
-npx expo start --web
-
-# IA (Python)
-docker exec -it ai-dev bash
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
 ---
 
-## Configuração do Node-RED
+## Observações
 
-Após subir os containers, acesse `http://localhost:1880` e configure o fluxo:
-
-1. **MQTT In** → conectar ao broker `mqtt` (porta `1883`) no tópico de produção.
-2. **Function** → transformar o payload para o formato de medição do InfluxDB.
-3. **InfluxDB Out** → gravar na organização `senai`, bucket `linha_producao`.
-
----
-
-## MVP — Funcionalidades
-
-- Cadastro e login de usuários (JWT)
-- Visualização de perfil do cliente
-- Criação e consulta de pedidos
-- Consulta de veículo
-- Acompanhamento de produção com timeline de etapas
-- Recomendações personalizadas por perfil
-
----
-
-## Requisitos Não Funcionais
-
-- API REST stateless com autenticação baseada em token
-- Frontend desacoplado do banco de dados (tudo via backend)
-- Serviço de IA desacoplado do banco (comunicação somente via backend)
-- Separação de responsabilidades por camadas
-- Containerização completa com Docker Compose
-
----
-
-## Roadmap
-
-1. Autenticação (register + login)
-2. Gestão de clientes e perfil
-3. Cadastro e consulta de pedidos
-4. Pipeline IoT: simulador → MQTT → Node-RED → InfluxDB
-5. Integração backend ↔ InfluxDB → PostgreSQL
-6. Desenvolvimento do frontend
-7. Serviço de recomendação (IA)
-8. Integração final e testes
-
----
-
-## Contexto Acadêmico
-
-Projeto desenvolvido como exercício prático de:
-
-- Arquitetura de software em camadas
-- Integração de sistemas heterogêneos
-- Tecnologias de mercado (IoT, REST, containers, séries temporais)
-- Simulação de cenário real de Indústria 4.0
-- Desenvolvimento fullstack com IoT e IA
+* Cada aplicação possui seu próprio README detalhado
+* Este documento descreve apenas a arquitetura global
+* O sistema foi projetado para fins educacionais e simulação industrial
