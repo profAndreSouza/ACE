@@ -28,8 +28,24 @@ O Grafana neste projeto tem como finalidade:
 
 ## Arquitetura de Visualização
 
-```
-Simulador → MQTT → Node-RED → InfluxDB → Grafana
+
+```mermaid
+flowchart LR
+
+    A[Simulador]
+
+    subgraph Stack MING
+      B[MQTT]
+      C[Node-RED]
+      D[InfluxDB]
+      E[Grafana]
+    end
+    
+    A --> B
+    B --> C 
+    C --> D
+    D --> E
+
 ````
 
 O Grafana atua como **camada final de observação do sistema**.
