@@ -1,0 +1,181 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "50dc2ba62f986416",
+        "type": "mqtt-broker",
+        "name": "MQTT-ACE",
+        "broker": "mqtt",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "572c1788953af692",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "InfluxACE",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://influxdb:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "32e953744d256eea",
+        "type": "mqtt in",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "topic": "senai/producao/linha",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "50dc2ba62f986416",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 280,
+        "wires": [
+            [
+                "a1f821a8ba36fae9"
+            ]
+        ]
+    },
+    {
+        "id": "3926fb794a01ebf7",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 780,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "be62874558fd1dd3",
+        "type": "mqtt in",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "topic": "senai/logistica/entrega",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "50dc2ba62f986416",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 460,
+        "wires": [
+            [
+                "83c35afd6c493fd5"
+            ]
+        ]
+    },
+    {
+        "id": "a1f821a8ba36fae9",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "producao",
+        "func": "let p = msg.payload;\n\nmsg.measurement = \"producao\";\n\nmsg.payload = {\n    quantidade: 1,\n    chassi: String(p.chassi),\n    etapa: String(p.etapa),\n    status: String(p.status)\n};\n\nmsg.timestamp = new Date(\n    p.timestamp.replace(\n        /(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{2})/,\n        \"$1-$2-$3T$4:$5:$6\"\n    )\n);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 280,
+        "wires": [
+            [
+                "3926fb794a01ebf7",
+                "064321a07360354b"
+            ]
+        ]
+    },
+    {
+        "id": "83c35afd6c493fd5",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "logistica",
+        "func": "let p = msg.payload;\n\nmsg.measurement = \"logistica\";\n\nmsg.payload = {\n    quantidade: 1,\n    id: String(p.id),\n    tipo: String(p.tipo),\n    destino: String(p.destino),\n    status: String(p.status)\n};\n\nmsg.timestamp = new Date(\n    p.timestamp.replace(\n        /(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{2})/,\n        \"$1-$2-$3T$4:$5:$6\"\n    )\n);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 460,
+        "wires": [
+            [
+                "3926fb794a01ebf7",
+                "064321a07360354b"
+            ]
+        ]
+    },
+    {
+        "id": "064321a07360354b",
+        "type": "influxdb out",
+        "z": "f6f2187d.f17ca8",
+        "influxdb": "572c1788953af692",
+        "name": "ACE",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "senai",
+        "bucket": "ace",
+        "x": 770,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "e416ad4594751db5",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-influxdb": "0.7.0"
+        }
+    }
+]
