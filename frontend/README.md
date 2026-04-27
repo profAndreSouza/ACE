@@ -1,268 +1,249 @@
-# Frontend — Aplicação Web
+# Frontend Web — Plataforma Industrial (Produção, Serviços e Vendas)
 
-Interface web do sistema de acompanhamento de produção, desenvolvida em **React**.
+## Visão Geral
 
-Consome exclusivamente a API REST do backend — sem acesso direto a banco de dados.
+Este projeto representa o **frontend da plataforma web corporativa** do ecossistema SENAI ACE.
+
+A aplicação consolida dados operacionais e comerciais vindos de sistemas industriais e IoT, permitindo a visualização e interação com:
+
+- Produção industrial (linha de montagem)
+- Serviços de manutenção
+- Venda de peças para consumidores finais
+- Gestão de pedidos e histórico de clientes
+
+---
+
+## Arquitetura Geral
+
+O sistema é dividido em duas camadas principais:
+
+### Stack MING (IoT / Dados Brutos)
+
+Responsável por:
+
+- Captura de eventos industriais via MQTT
+- Processamento em Node-RED
+- Armazenamento de dados brutos no InfluxDB
+
+> Esta camada NÃO é acessada diretamente pelo frontend.
+
+---
+
+### Stack Web (Camada de Negócio)
+
+Responsável por:
+
+- Leitura dos dados do InfluxDB
+- Consolidação e modelagem de dados
+- Persistência estruturada no PostgreSQL
+- Exposição via API REST
+
+O frontend consome **somente a API da Stack Web**.
+
+---
+
+## Domínios da Aplicação
+
+A aplicação cobre três grandes áreas:
+
+### Produção
+- Acompanhamento de linha de produção
+- Status de veículos
+- Etapas industriais
+- Histórico de fabricação
+
+### Serviços
+- Ordens de manutenção
+- Atendimento técnico
+- Serviços associados a veículos
+- Histórico de intervenções
+
+### Vendas de Peças (B2C)
+- Catálogo de peças
+- Compra por consumidores finais
+- Associação de peças a serviços
+- Histórico de compras
 
 ---
 
 ## Tecnologias
 
-- [React 18](https://react.dev/) — biblioteca de UI
-- [React Router v6](https://reactrouter.com/) — roteamento
-- [Axios](https://axios-http.com/) — cliente HTTP
-- [Context API](https://react.dev/reference/react/createContext) — estado global (autenticação)
+- React 18
+- React Router v6
+- Axios
+- Context API (auth)
+- Vite
+- CSS Modules
 
 ---
 
-## Estrutura de Pastas
+## Estrutura do Projeto
 
 ```
+
 frontend/
 ├── public/
 │   └── index.html
 │
 ├── src/
-│   ├── api/                    # Configuração do Axios e chamadas à API
-│   │   ├── axios.js            # Instância base com interceptors de token
+│   ├── api/                     # Integração com backend (Postgres API)
+│   │   ├── axios.js
 │   │   ├── authApi.js
-│   │   ├── orderApi.js
 │   │   ├── productionApi.js
-│   │   └── recommendationApi.js
+│   │   ├── serviceApi.js       # Serviços / manutenção
+│   │   ├── partsApi.js        # Venda de peças
+│   │   └── ordersApi.js
 │   │
-│   ├── components/             # Componentes reutilizáveis
+│   ├── components/
 │   │   ├── Header.jsx
-│   │   ├── PrivateRoute.jsx    # Redireciona para login se não autenticado
+│   │   ├── PrivateRoute.jsx
 │   │   ├── ProductionTimeline.jsx
-│   │   └── RecommendationCard.jsx
+│   │   ├── ServiceCard.jsx
+│   │   └── PartsCard.jsx
 │   │
 │   ├── contexts/
-│   │   └── AuthContext.jsx     # Token JWT, usuário logado, login/logout
+│   │   └── AuthContext.jsx
 │   │
-│   ├── pages/                  # Uma pasta por tela
+│   ├── pages/
 │   │   ├── Login/
-│   │   │   ├── index.jsx
-│   │   │   └── Login.module.css
 │   │   ├── Register/
 │   │   ├── Home/
 │   │   ├── Profile/
-│   │   ├── Orders/
-│   │   │   ├── OrderList.jsx
-│   │   │   └── OrderDetail.jsx
+│   │   │
 │   │   ├── Production/
 │   │   │   └── ProductionDetail.jsx
-│   │   └── Vehicle/
-│   │       └── VehicleDetail.jsx
+│   │   │
+│   │   ├── Services/
+│   │   │   ├── ServiceList.jsx
+│   │   │   └── ServiceDetail.jsx
+│   │   │
+│   │   ├── Parts/
+│   │   │   ├── PartsCatalog.jsx
+│   │   │   ├── PartsDetail.jsx
+│   │   │   └── Cart.jsx
+│   │   │
+│   │   └── Orders/
+│   │       ├── OrderList.jsx
+│   │       └── OrderDetail.jsx
 │   │
 │   ├── routes/
-│   │   └── AppRoutes.jsx       # Definição central de todas as rotas
+│   │   └── AppRoutes.jsx
 │   │
 │   ├── App.jsx
 │   └── main.jsx
 │
 ├── .env.example
-├── .env                        # NÃO subir no repositório
+├── .env
 ├── package.json
 └── vite.config.js
-```
+
+````
 
 ---
 
 ## Configuração
 
-Copie o arquivo de exemplo e preencha a URL da API:
-
 ```bash
 cp .env.example .env
-```
-
-Conteúdo do `.env`:
+````
 
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:80
 ```
-
-> Em produção, substitua pelo endereço real do backend.
 
 ---
 
-## Como Rodar
+## Execução
 
-### Opção 1 — dentro do Docker
-
-```bash
-docker exec -it frontend-dev bash
-
-# Dentro do container:
-npm install
-npm run dev -- --host 0.0.0.0 --port 19006
-```
-
-Acesse em `http://localhost:19006`.
-
-### Opção 2 — localmente (requer Node 20+)
+### Local
 
 ```bash
-cd frontend
 npm install
 npm run dev
 ```
 
+## Módulos da Interface
+
+### Produção
+
+* Status de veículos
+* Timeline de produção
+* Histórico por chassi
+
+### Serviços
+
+* Ordens de manutenção
+* Diagnóstico técnico
+* Associação com peças utilizadas
+
+### Peças (B2C)
+
+* Catálogo de peças automotivas
+* Carrinho de compras
+* Histórico de pedidos
+* Associação com serviços
+
 ---
 
-## Telas
+## Fluxo de Dados
 
-| Rota | Componente | Auth | Descrição |
-|------|-----------|------|-----------|
-| `/login` | `Login` | Não | Formulário de login |
-| `/register` | `Register` | Não | Cadastro de novo usuário |
-| `/` | `Home` | Sim | Resumo dos pedidos ativos |
-| `/profile` | `Profile` | Sim | Perfil do cliente |
-| `/orders` | `OrderList` | Sim | Lista de pedidos |
-| `/orders/:id` | `OrderDetail` | Sim | Detalhe do pedido + link para produção |
-| `/production/:orderId` | `ProductionDetail` | Sim | Timeline de etapas de produção |
-| `/vehicles/:id` | `VehicleDetail` | Sim | Dados do veículo |
+```mermaid id="frontend_flow"
+flowchart LR
+
+subgraph Stack MING - IoT
+  B[InfluxDB - Dados Brutos]
+end
+
+subgraph Stack Web
+  C[Backend]
+  D[PostgreSQL - Dados Consolidados]
+  E[Frontend React]
+end
+
+B --> C <--> D
+C --> E
+```
 
 ---
 
 ## Autenticação
 
-O token JWT retornado pelo backend é armazenado no `localStorage` e injetado automaticamente em todas as requisições via interceptor do Axios.
-
-### `src/api/axios.js`
-
-```js
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-export default api;
-```
-
-### `src/contexts/AuthContext.jsx`
-
-Expõe:
-
-- `user` — dados do usuário autenticado
-- `login(email, password)` — chama a API, salva o token e redireciona
-- `logout()` — limpa o token e redireciona para `/login`
-- `isAuthenticated` — booleano para uso nas rotas protegidas
+* JWT armazenado em `localStorage`
+* Interceptor Axios adiciona token automaticamente
+* Rotas protegidas via `PrivateRoute`
 
 ---
 
-## Rotas Protegidas
+## Regras Arquiteturais
 
-Rotas que exigem autenticação usam o componente `PrivateRoute`:
+* Frontend NÃO acessa InfluxDB diretamente
+* Frontend NÃO acessa MQTT
+* Frontend NÃO acessa Node-RED
+* Apenas consome API da Stack Web
+* Separação entre:
 
-```jsx
-// src/routes/AppRoutes.jsx
-<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-```
-
-```jsx
-// src/components/PrivateRoute.jsx
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-
-export default function PrivateRoute({ children }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-}
-```
+  * dados brutos (IoT)
+  * dados de negócio (Postgres)
 
 ---
 
-## Chamadas à API
+## Princípios de Desenvolvimento
 
-Centralize todas as chamadas em `/src/api/`. Nunca use `fetch` ou `axios` diretamente dentro de componentes ou páginas.
-
-**Exemplo — `src/api/productionApi.js`:**
-
-```js
-import api from './axios';
-
-export const getProduction = (orderId) =>
-  api.get(`/api/production/${orderId}`).then((res) => res.data);
-```
-
-**Uso na página:**
-
-```jsx
-import { useEffect, useState } from 'react';
-import { getProduction } from '../../api/productionApi';
-
-export default function ProductionDetail({ orderId }) {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    getProduction(orderId).then(setData);
-  }, [orderId]);
-
-  if (!data) return <p>Carregando...</p>;
-
-  return <ProductionTimeline timeline={data.timeline} />;
-}
-```
+* Separação de responsabilidades (UI x API)
+* Componentes reutilizáveis
+* Páginas desacopladas
+* API centralizada em `/api`
+* Estado global apenas para autenticação
+* UI orientada a domínio (produção, serviços, vendas)
 
 ---
 
-## Componente de Timeline
+## Uso Educacional
 
-O componente `ProductionTimeline` recebe o array de etapas e renderiza o progresso da produção:
+Este frontend é utilizado para ensino de:
 
-```jsx
-// src/components/ProductionTimeline.jsx
-export default function ProductionTimeline({ timeline }) {
-  return (
-    <ul>
-      {timeline.map((item) => (
-        <li key={item.stage}>
-          <strong>{item.stage}</strong>
-          <span> — entrada: {new Date(item.enteredAt).toLocaleString('pt-BR')}</span>
-          {item.exitedAt && (
-            <span> — saída: {new Date(item.exitedAt).toLocaleString('pt-BR')}</span>
-          )}
-          {!item.exitedAt && <span> ← em andamento</span>}
-        </li>
-      ))}
-    </ul>
-  );
-}
-```
-
----
-
-## Padrões Adotados
-
-- **Páginas** contêm lógica de estado e chamadas à API; **componentes** são apresentacionais.
-- **Todas as chamadas HTTP** passam pelos módulos em `/api/` — nunca diretamente nos componentes.
-- **Variáveis de ambiente** sempre prefixadas com `VITE_` para serem expostas pelo Vite.
-- **CSS Modules** para escopo local de estilos (`.module.css`).
-- **Sem estado global além de autenticação** — use estado local com `useState`/`useReducer` nas páginas.
-
----
-
-## Checklist de Implementação
-
-- [ ] Configurar Vite + React
-- [ ] Instalar dependências (`react-router-dom`, `axios`)
-- [ ] Criar instância do Axios com interceptor de token
-- [ ] Implementar `AuthContext` (login, logout, token)
-- [ ] Implementar `PrivateRoute`
-- [ ] Definir rotas em `AppRoutes.jsx`
-- [ ] Tela de Login
-- [ ] Tela de Cadastro
-- [ ] Tela Home (lista de pedidos ativos)
-- [ ] Tela de Perfil
-- [ ] Tela de Detalhe do Pedido
-- [ ] Tela de Acompanhamento de Produção (timeline)
-- [ ] Tela de Detalhe do Veículo
-- [ ] Componente de Recomendações
+* Arquitetura moderna de sistemas web industriais
+* Integração de IoT com sistemas corporativos
+* Separação de camadas (Edge / Data / Business / UI)
+* Modelagem de sistemas ERP industriais
+* E-commerce integrado com manufatura
